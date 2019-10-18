@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>自动填入</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+</head>
+<style>
+    .container {
+        margin-top: 18px;
+    }
+    .upload_btn {
+        border-radius: 4px;            
+        height: 34px;
+        width: 80px;
+    }
+    .upload_div {
+        overflow: hidden;
+        width: 265px;
+    }
+    #accessory {
+        position: absolute;
+        width: 80px;
+        height: 34px;
+        opacity: 0;
+    }
+    .upload_submit {
+        margin-top:20px;
+        margin-bottom: 30px;
+    }
+</style>
+<script src="/static/js/jquery-3.3.1.js"></script>
+<script src="/static/js/bootstrap.min.js"></script>
+<body>
+    <div class="container" style="width:1400px;">
+        <div class="col-sm-6">
+            <div for="accessory" class="upload_div">
+                <input type="file" id="accessory" name="file" class="file_btn" multiple="multiple">
+                <button class="upload_btn">选择文件</button>
+            </div>
+            <table class="table">
+                <caption>要提交的文件</caption>
+                <thead>
+                    <tr>
+                        <th>编号</th>
+                        <th>文件名</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody class="upload_tbody">
+                </tbody>
+            </table>
+            <input type="button" class="btn btn-default upload_submit" value="上传服务器">
+        </div>
+        <div class="col-sm-6">
+            自动填写到lyouoa系统中
+        </div>
+    </div>
+</body>
+<script>
+    var current_files = ""
+    $(function() {
+        $("#accessory").change(function() {
+            $(".upload_tbody").empty();
+            var files =  document.getElementById("accessory").files;
+            current_files = files;
+            add_tbody(files);
+        });
+        $(".upload_submit").click(function() {
+            current_files_count = current_files.length;
+            if(current_files_count == 0){
+                alert("您没有添加文件！");
+                return false;
+            }
+            var formFile = new FormData();
+            for(var k=0;k<current_files_count;k++) {
+                // console.log(current_files[k].size);
+                // formFile.append("action", "Upload");
+                formFile.append("file" + k, current_files[k])
+            }
+            $.ajax({
+                url: "/upload_file/",
+                data: formFile,
+                type: "post",
+                dataType: "json",
+                cache: false, //上传文件无需缓存
+                processData: false, //用于对data参数进行序列化处理 这里必须是false
+                contentType: false,
+                success: function(res) {
+                    if(res.res) {
+                        alert("上传成功！");
+                    } else {
+                        alert("上传失败！");
+                    }
+                }
+            });
+        });
+    });
+    function add_tbody(tfiles) {
+        file_count = tfiles.length
+        trs_str = ''
+        for(var i=0;i<file_count;i++) {
+            file_number = i + 1
+            cur_file_name = tfiles[i]['name']
+            td_str = "<tr><td>" + file_number + "</td><td>" + cur_file_name + "</td><td><input type='button' value='删除' class='delbtn'></td></tr>"
+            trs_str += td_str    
+        }
+        $(".upload_tbody").append(trs_str);
+        $(".delbtn").on("click", function() {
+            new_files = Array() 
+            del_file_name = $(this).parent("td").prev("td").text();
+            for(var j=0;j<file_count;j++) {
+                if(tfiles[j]['name'] != del_file_name) {
+                    new_files.push(tfiles[j])
+                }
+            }
+            $(".upload_tbody").empty();
+            current_files = new_files;
+            add_tbody(new_files);
+        });
+    }
+</script>
+</html>
