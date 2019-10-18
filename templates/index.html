@@ -90,6 +90,8 @@
                 contentType: false,
                 success: function(res) {
                     if(res.res) {
+                        $(".upload_tbody").empty();
+                        current_files = "";
                         alert("上传成功！");
                     } else {
                         alert("上传失败！");
